@@ -6,7 +6,7 @@
      win_ec2_instance_type: t2.medium
      win_ami_id: ami-026e4c271f0e37101  #win 2012 R2 Base
      ansible_password: Sravani@143
-     
+
   tasks:
     # this task will create a new security group with required rules
     - name: Setting up Security/Firewall Group
@@ -31,8 +31,8 @@
             from_port: -1
             to_port: -1
             cidr_ip: 0.0.0.0/0
-            
-    # This Task spins a new ec2 windows instance
+
+    #This Task spins a new ec2 windows instance
     - name: Provision an Ec2 Windows Instance
       ec2:
          region: "{{ aws_region }}"
@@ -46,22 +46,21 @@
             owner: Bala
          monitoring: no
          group: "{{ win_ec2_sec_group }}"
-         # Below is Very Important as we enable winrm on new server Also set the Administrator password
+         # Below is Very Important as we enable winrm on new server, Also set the Administrator password
          user_data: "{{ lookup('template', '/home/ansadmin/winrm-userdata.txt.j2') }}"
       register: ec2_out
-    
+
 
     # wait for winrm to listen on port 5986
     - name: Wait for WinRM on all hosts
       wait_for:
          port: 5986
          host: "{{ item.public_ip }}"
-         timeout: 300
+         timeout: 600
          state: started
       with_items: "{{ ec2_out.instances }}"
-  
+
     # display the public dns and ip address
     - debug:
-        msg: "System {{ item.public.dns_name }} has public-ip {{ item.public_ip }}"
-      with_items: "{{ ec2_out.instances }}"      
-   
+         msg: "System {{ item.public.dns_name }} has public-ip {{ item.public_ip }}"
+      with_items: "{{ ec2_out.instances }}"
